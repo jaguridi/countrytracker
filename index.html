@@ -1028,27 +1028,52 @@ body::before {
 
 .home-select { flex: 1; }
 
-/* Map legend dots */
+/* Map legend - collapsed by default */
 .map-legend {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+.legend-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.legend-toggle:hover { background: var(--bg-card-hover); }
+
+.legend-panel {
+  display: none;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  font-size: 0.72rem;
+  padding: 8px 12px;
+  font-size: 0.68rem;
   color: var(--text-secondary);
-  z-index: 10;
+  margin-bottom: 6px;
+  white-space: nowrap;
 }
+
+.map-legend.open .legend-panel { display: flex; }
+.map-legend.open .legend-toggle { background: var(--bg-card-hover); }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .legend-dot {
@@ -1177,13 +1202,16 @@ body::before {
   <!-- Map -->
   <section class="map-section">
     <div class="map-container" id="mapContainer">
-      <div class="map-legend">
-        <div class="legend-item"><span class="legend-dot origin"></span> Origin</div>
-        <div class="legend-item"><span class="legend-dot residence"></span> Residence</div>
-        <div class="legend-item"><span class="legend-dot current"></span> Current trip</div>
-        <div class="legend-item"><span class="legend-dot multi"></span> Multiple visits</div>
-        <div class="legend-item"><span class="legend-dot visited"></span> Visited once</div>
-        <div class="legend-item"><span class="legend-dot layover"></span> Layover only</div>
+      <div class="map-legend" id="mapLegend">
+        <div class="legend-panel">
+          <div class="legend-item"><span class="legend-dot origin"></span> Origin</div>
+          <div class="legend-item"><span class="legend-dot residence"></span> Residence</div>
+          <div class="legend-item"><span class="legend-dot current"></span> Current trip</div>
+          <div class="legend-item"><span class="legend-dot multi"></span> Multiple visits</div>
+          <div class="legend-item"><span class="legend-dot visited"></span> Visited once</div>
+          <div class="legend-item"><span class="legend-dot layover"></span> Layover only</div>
+        </div>
+        <button class="legend-toggle" onclick="document.getElementById('mapLegend').classList.toggle('open')" title="Legend">&#9432;</button>
       </div>
     </div>
   </section>
