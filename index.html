@@ -198,6 +198,26 @@ body::before {
   filter: drop-shadow(0 0 8px rgba(212, 168, 83, 0.4));
 }
 
+.map-container svg path.visited-multi {
+  fill: #b8860b;
+  filter: drop-shadow(0 0 6px rgba(184, 134, 11, 0.4));
+}
+
+.map-container svg path.visited-multi:hover {
+  fill: #d4a017;
+  filter: drop-shadow(0 0 10px rgba(184, 134, 11, 0.6));
+}
+
+.map-container svg path.visited-layover {
+  fill: #5a5040;
+  filter: none;
+}
+
+.map-container svg path.visited-layover:hover {
+  fill: #6b604e;
+  filter: brightness(1.2);
+}
+
 .map-container svg path.origin {
   fill: var(--country-origin) !important;
   filter: drop-shadow(0 0 5px rgba(91, 143, 185, 0.4));
@@ -435,16 +455,73 @@ body::before {
   text-align: center;
 }
 
-.country-item .name {
-  flex: 1;
-  font-size: 0.88rem;
-  font-weight: 400;
-}
-
 .country-item .date-added {
   font-size: 0.72rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
+}
+
+.country-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.country-info .name {
+  font-size: 0.88rem;
+  font-weight: 400;
+  display: block;
+}
+
+.visit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.visit-chip {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(212, 168, 83, 0.15);
+  color: var(--accent-gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+}
+
+.visit-chip.layover-chip {
+  background: rgba(90, 80, 64, 0.3);
+  color: var(--text-muted);
+}
+
+.visit-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.6rem;
+  padding: 0 2px;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.visit-remove:hover { opacity: 1; }
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent-gold);
+  width: 16px;
+  height: 16px;
 }
 
 .country-tag {
@@ -945,6 +1022,8 @@ body::before {
 .legend-dot.origin { background: var(--country-origin); }
 .legend-dot.residence { background: var(--country-residence); }
 .legend-dot.visited { background: var(--country-visited); }
+.legend-dot.multi { background: #b8860b; }
+.legend-dot.layover { background: #5a5040; }
 .legend-dot.current { background: var(--current-location); }
 
 /* ===== CONTINENT STATS ===== */
@@ -1062,8 +1141,10 @@ body::before {
       <div class="map-legend">
         <div class="legend-item"><span class="legend-dot origin"></span> Origin</div>
         <div class="legend-item"><span class="legend-dot residence"></span> Residence</div>
-        <div class="legend-item"><span class="legend-dot visited"></span> Visited</div>
         <div class="legend-item"><span class="legend-dot current"></span> Current trip</div>
+        <div class="legend-item"><span class="legend-dot multi"></span> Multiple visits</div>
+        <div class="legend-item"><span class="legend-dot visited"></span> Visited once</div>
+        <div class="legend-item"><span class="legend-dot layover"></span> Layover only</div>
       </div>
     </div>
   </section>
@@ -1177,14 +1258,24 @@ body::before {
   <div class="tooltip-status"></div>
 </div>
 
-<!-- Confirm Modal -->
-<div class="modal-overlay" id="confirmModal">
+<!-- Add Visit Modal -->
+<div class="modal-overlay" id="visitModal">
   <div class="modal">
-    <h3 id="modalTitle">Confirm</h3>
-    <p id="modalMessage" style="font-size:0.88rem; color:var(--text-secondary); line-height:1.5;"></p>
+    <h3 id="visitModalTitle">Add Visit</h3>
+    <p id="visitModalSub" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;"></p>
+    <div class="modal-field">
+      <label for="visitYearInput">Year of visit</label>
+      <input type="number" id="visitYearInput" min="1950" max="2099" placeholder="e.g. 2024">
+    </div>
+    <div class="modal-field">
+      <label class="checkbox-label">
+        <input type="checkbox" id="visitLayoverCheck">
+        <span>Layover / stopover only</span>
+      </label>
+    </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
-      <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+      <button class="btn btn-ghost" id="visitModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="visitModalSave">Add Visit</button>
     </div>
   </div>
 </div>
@@ -1192,12 +1283,12 @@ body::before {
 <script>
 // ===== CONTINENT DATA =====
 const CONTINENTS = {
-  'Africa': ['ao','bf','bi','bj','bw','cd','cf','cg','ci','cm','dj','dz','eg','eh','er','et','ga','gh','gm','gn','gq','gw','ke','lr','ls','ly','ma','mg','ml','mr','mw','mz','na','ne','ng','rw','sd','sl','sn','so','ss','sz','td','tg','tn','tz','ug','za','zm','zw'],
-  'Asia': ['ae','af','am','az','bd','bn','bt','cn','ge','id','il','in','iq','ir','jo','jp','kg','kh','kp','kr','kw','kz','la','lb','lk','mm','mn','my','np','om','ph','pk','ps','qa','sa','sg','sy','th','tj','tl','tm','tw','uz','vn','ye'],
-  'Europe': ['al','at','ba','be','bg','by','ch','cy','cz','de','dk','ee','es','fi','fr','gb','gr','hr','hu','ie','is','it','lt','lu','lv','md','me','mk','nl','no','pl','pt','ro','rs','ru','se','si','sk','tr','ua'],
-  'North America': ['bs','bz','ca','cr','cu','do','gt','hn','ht','jm','mx','ni','pa','pr','sv','tt','us'],
-  'South America': ['ar','bo','br','cl','co','ec','fk','gy','pe','py','sr','uy','ve'],
-  'Oceania': ['au','fj','nc','nz','pg','sb','vu']
+  'Africa': ['ao','bf','bi','bj','bw','cd','cf','cg','ci','cm','cv','dj','dz','eg','er','et','ga','gh','gm','gn','gq','gw','ke','km','lr','ls','ly','ma','mg','ml','mr','mu','mw','mz','na','ne','ng','rw','sc','sd','sl','sn','so','ss','st','sz','td','tg','tn','tz','ug','za','zm','zw'],
+  'Asia': ['ae','af','am','az','bd','bh','bn','bt','cn','ge','id','il','in','iq','ir','jo','jp','kg','kh','kp','kr','kw','kz','la','lb','lk','mm','mn','mv','my','np','om','ph','pk','ps','qa','sa','sg','sy','th','tj','tl','tm','tw','uz','vn','ye'],
+  'Europe': ['ad','al','at','ba','be','bg','by','ch','cy','cz','de','dk','ee','es','fi','fr','gb','gr','hr','hu','ie','is','it','li','lt','lu','lv','mc','md','me','mk','mt','nl','no','pl','pt','ro','rs','ru','se','si','sk','sm','tr','ua','va'],
+  'North America': ['ag','bb','bs','bz','ca','cr','cu','dm','do','gd','gt','hn','ht','jm','kn','lc','mx','ni','pa','pr','sv','tt','us','vc'],
+  'South America': ['ar','bo','br','cl','co','ec','gy','pe','py','sr','uy','ve'],
+  'Oceania': ['au','fj','fm','ki','mh','nr','nz','pg','pw','sb','to','tv','vu','ws']
 };
 
 const CONTINENT_ICONS = {
@@ -1207,36 +1298,40 @@ const CONTINENT_ICONS = {
 
 // ===== COUNTRY DATA =====
 const COUNTRIES = {
-  "_somaliland":"Somaliland","ae":"United Arab Emirates","af":"Afghanistan","al":"Albania","am":"Armenia",
-  "ao":"Angola","ar":"Argentina","at":"Austria","au":"Australia","az":"Azerbaijan",
-  "ba":"Bosnia and Herzegovina","bd":"Bangladesh","be":"Belgium","bf":"Burkina Faso","bg":"Bulgaria",
-  "bi":"Burundi","bj":"Benin","bn":"Brunei","bo":"Bolivia","br":"Brazil","bs":"Bahamas","bt":"Bhutan",
-  "bw":"Botswana","by":"Belarus","bz":"Belize","ca":"Canada","cd":"DR Congo",
-  "cf":"Central African Republic","cg":"Congo","ch":"Switzerland","ci":"Ivory Coast","cl":"Chile",
-  "cm":"Cameroon","cn":"China","co":"Colombia","cr":"Costa Rica","cu":"Cuba","cy":"Cyprus",
-  "cz":"Czech Republic","de":"Germany","dj":"Djibouti","dk":"Denmark","do":"Dominican Republic",
-  "dz":"Algeria","ec":"Ecuador","ee":"Estonia","eg":"Egypt","eh":"Western Sahara","er":"Eritrea",
-  "es":"Spain","et":"Ethiopia","fi":"Finland","fj":"Fiji","fk":"Falkland Islands","fr":"France",
-  "ga":"Gabon","gb":"United Kingdom","ge":"Georgia","gh":"Ghana","gl":"Greenland","gm":"Gambia",
-  "gn":"Guinea","gq":"Equatorial Guinea","gr":"Greece","gt":"Guatemala","gw":"Guinea-Bissau",
-  "gy":"Guyana","hn":"Honduras","hr":"Croatia","ht":"Haiti","hu":"Hungary","id":"Indonesia",
-  "ie":"Ireland","il":"Israel","in":"India","iq":"Iraq","ir":"Iran","is":"Iceland","it":"Italy",
-  "jm":"Jamaica","jo":"Jordan","jp":"Japan","ke":"Kenya","kg":"Kyrgyzstan","kh":"Cambodia",
+  "ad":"Andorra","ae":"United Arab Emirates","af":"Afghanistan","ag":"Antigua and Barbuda",
+  "al":"Albania","am":"Armenia","ao":"Angola","ar":"Argentina","at":"Austria","au":"Australia",
+  "az":"Azerbaijan","ba":"Bosnia and Herzegovina","bb":"Barbados","bd":"Bangladesh","be":"Belgium",
+  "bf":"Burkina Faso","bg":"Bulgaria","bh":"Bahrain","bi":"Burundi","bj":"Benin","bn":"Brunei",
+  "bo":"Bolivia","br":"Brazil","bs":"Bahamas","bt":"Bhutan","bw":"Botswana","by":"Belarus",
+  "bz":"Belize","ca":"Canada","cd":"DR Congo","cf":"Central African Republic","cg":"Congo",
+  "ch":"Switzerland","ci":"Ivory Coast","cl":"Chile","cm":"Cameroon","cn":"China","co":"Colombia",
+  "cr":"Costa Rica","cu":"Cuba","cv":"Cape Verde","cy":"Cyprus","cz":"Czech Republic","de":"Germany",
+  "dj":"Djibouti","dk":"Denmark","dm":"Dominica","do":"Dominican Republic","dz":"Algeria",
+  "ec":"Ecuador","ee":"Estonia","eg":"Egypt","er":"Eritrea","es":"Spain","et":"Ethiopia",
+  "fi":"Finland","fj":"Fiji","fm":"Micronesia","fr":"France","ga":"Gabon","gb":"United Kingdom",
+  "gd":"Grenada","ge":"Georgia","gh":"Ghana","gm":"Gambia","gn":"Guinea","gq":"Equatorial Guinea",
+  "gr":"Greece","gt":"Guatemala","gw":"Guinea-Bissau","gy":"Guyana","hn":"Honduras","hr":"Croatia",
+  "ht":"Haiti","hu":"Hungary","id":"Indonesia","ie":"Ireland","il":"Israel","in":"India","iq":"Iraq",
+  "ir":"Iran","is":"Iceland","it":"Italy","jm":"Jamaica","jo":"Jordan","jp":"Japan","ke":"Kenya",
+  "kg":"Kyrgyzstan","kh":"Cambodia","ki":"Kiribati","km":"Comoros","kn":"Saint Kitts and Nevis",
   "kp":"North Korea","kr":"South Korea","kw":"Kuwait","kz":"Kazakhstan","la":"Laos","lb":"Lebanon",
-  "lk":"Sri Lanka","lr":"Liberia","ls":"Lesotho","lt":"Lithuania","lu":"Luxembourg","lv":"Latvia",
-  "ly":"Libya","ma":"Morocco","md":"Moldova","me":"Montenegro","mg":"Madagascar","mk":"North Macedonia",
-  "ml":"Mali","mm":"Myanmar","mn":"Mongolia","mr":"Mauritania","mw":"Malawi","mx":"Mexico",
-  "my":"Malaysia","mz":"Mozambique","na":"Namibia","nc":"New Caledonia","ne":"Niger","ng":"Nigeria",
-  "ni":"Nicaragua","nl":"Netherlands","no":"Norway","np":"Nepal","nz":"New Zealand","om":"Oman",
-  "pa":"Panama","pe":"Peru","pg":"Papua New Guinea","ph":"Philippines","pk":"Pakistan","pl":"Poland",
-  "pr":"Puerto Rico","ps":"Palestine","pt":"Portugal","py":"Paraguay","qa":"Qatar","ro":"Romania",
-  "rs":"Serbia","ru":"Russia","rw":"Rwanda","sa":"Saudi Arabia","sb":"Solomon Islands","sd":"Sudan",
-  "se":"Sweden","sg":"Singapore","si":"Slovenia","sk":"Slovakia","sl":"Sierra Leone","sn":"Senegal",
-  "so":"Somalia","sr":"Suriname","ss":"South Sudan","sv":"El Salvador","sy":"Syria","sz":"Eswatini",
-  "td":"Chad","tf":"French Southern Lands","tg":"Togo","th":"Thailand","tj":"Tajikistan",
-  "tl":"Timor-Leste","tm":"Turkmenistan","tn":"Tunisia","tr":"Turkey","tt":"Trinidad and Tobago",
-  "tw":"Taiwan","tz":"Tanzania","ua":"Ukraine","ug":"Uganda","us":"United States","uy":"Uruguay",
-  "uz":"Uzbekistan","ve":"Venezuela","vn":"Vietnam","vu":"Vanuatu","ye":"Yemen","za":"South Africa",
+  "lc":"Saint Lucia","li":"Liechtenstein","lk":"Sri Lanka","lr":"Liberia","ls":"Lesotho",
+  "lt":"Lithuania","lu":"Luxembourg","lv":"Latvia","ly":"Libya","ma":"Morocco","mc":"Monaco",
+  "md":"Moldova","me":"Montenegro","mg":"Madagascar","mh":"Marshall Islands","mk":"North Macedonia",
+  "ml":"Mali","mm":"Myanmar","mn":"Mongolia","mr":"Mauritania","mt":"Malta","mu":"Mauritius",
+  "mv":"Maldives","mw":"Malawi","mx":"Mexico","my":"Malaysia","mz":"Mozambique","na":"Namibia",
+  "ne":"Niger","ng":"Nigeria","ni":"Nicaragua","nl":"Netherlands","no":"Norway","np":"Nepal",
+  "nr":"Nauru","nz":"New Zealand","om":"Oman","pa":"Panama","pe":"Peru","pg":"Papua New Guinea",
+  "ph":"Philippines","pk":"Pakistan","pl":"Poland","ps":"Palestine","pt":"Portugal","pw":"Palau",
+  "py":"Paraguay","qa":"Qatar","ro":"Romania","rs":"Serbia","ru":"Russia","rw":"Rwanda",
+  "sa":"Saudi Arabia","sb":"Solomon Islands","sc":"Seychelles","sd":"Sudan","se":"Sweden",
+  "sg":"Singapore","si":"Slovenia","sk":"Slovakia","sl":"Sierra Leone","sm":"San Marino",
+  "sn":"Senegal","so":"Somalia","sr":"Suriname","ss":"South Sudan","st":"Sao Tome and Principe",
+  "sv":"El Salvador","sy":"Syria","sz":"Eswatini","td":"Chad","tg":"Togo","th":"Thailand",
+  "tj":"Tajikistan","tl":"Timor-Leste","tm":"Turkmenistan","tn":"Tunisia","to":"Tonga","tr":"Turkey",
+  "tt":"Trinidad and Tobago","tv":"Tuvalu","tw":"Taiwan","tz":"Tanzania","ua":"Ukraine","ug":"Uganda",
+  "us":"United States","uy":"Uruguay","uz":"Uzbekistan","va":"Vatican City","vc":"Saint Vincent",
+  "ve":"Venezuela","vn":"Vietnam","vu":"Vanuatu","ws":"Samoa","ye":"Yemen","za":"South Africa",
   "zm":"Zambia","zw":"Zimbabwe"
 };
 
@@ -1253,16 +1348,28 @@ let tripLog = JSON.parse(localStorage.getItem('wanderlust_trips') || '[]');
 let originCountry = localStorage.getItem('wanderlust_origin') || null;
 let residenceCountry = localStorage.getItem('wanderlust_residence') || null;
 
+// Migrate old format (single addedAt) to new format (visits array)
+(function migrateData() {
+  for (const code of Object.keys(visitedCountries)) {
+    const entry = visitedCountries[code];
+    if (!entry.visits) {
+      const year = entry.addedAt ? new Date(entry.addedAt).getFullYear() : null;
+      visitedCountries[code] = { visits: year ? [{ year }] : [] };
+    }
+  }
+})();
+
 // Seed defaults on first load
-if (!localStorage.getItem('wanderlust_seeded')) {
+if (!localStorage.getItem('wanderlust_seeded_v2')) {
   originCountry = 'cl';
   residenceCountry = 'us';
   currentLocation = { code: 'py', since: new Date().toISOString() };
-  visitedCountries['cl'] = { addedAt: new Date().toISOString() };
-  visitedCountries['us'] = { addedAt: new Date().toISOString() };
-  visitedCountries['py'] = { addedAt: new Date().toISOString() };
-  visitedCountries['th'] = { addedAt: '2025-01-01T00:00:00.000Z' };
-  localStorage.setItem('wanderlust_seeded', '1');
+  visitedCountries['cl'] = { visits: [] };
+  visitedCountries['us'] = { visits: [] };
+  visitedCountries['py'] = { visits: [{ year: 2026 }] };
+  visitedCountries['th'] = { visits: [{ year: 2025 }] };
+  visitedCountries['co'] = { visits: [{ year: 2022 }, { year: 2024 }, { year: 2025 }, { year: 2025 }] };
+  localStorage.setItem('wanderlust_seeded_v2', '1');
   saveState();
 }
 
@@ -1309,12 +1416,22 @@ function applyMapStates() {
   if (!svg) return;
 
   svg.querySelectorAll('path[id]').forEach(path => {
-    path.classList.remove('visited', 'current-location', 'origin', 'residence');
+    path.classList.remove('visited', 'visited-multi', 'visited-layover', 'current-location', 'origin', 'residence');
   });
 
   Object.keys(visitedCountries).forEach(code => {
+    const entry = visitedCountries[code];
+    const visits = entry.visits || [];
+    const realVisits = visits.filter(v => !v.layover);
+    const onlyLayovers = visits.length > 0 && realVisits.length === 0;
     const paths = svg.querySelectorAll(`path[id="${code}"]`);
-    paths.forEach(p => p.classList.add('visited'));
+    if (onlyLayovers) {
+      paths.forEach(p => p.classList.add('visited-layover'));
+    } else if (realVisits.length > 1) {
+      paths.forEach(p => p.classList.add('visited-multi'));
+    } else {
+      paths.forEach(p => p.classList.add('visited'));
+    }
   });
 
   // Origin (overrides visited color)
@@ -1341,7 +1458,7 @@ const tooltip = document.getElementById('mapTooltip');
 
 function showTooltip(e, code) {
   const name = COUNTRIES[code] || code.toUpperCase();
-  const isVisited = visitedCountries[code];
+  const entry = visitedCountries[code];
   const isCurrent = currentLocation && currentLocation.code === code;
   tooltip.querySelector('.tooltip-name').textContent = `${getFlag(code)} ${name}`;
   const isOrigin = originCountry === code;
@@ -1350,8 +1467,11 @@ function showTooltip(e, code) {
   if (isCurrent) status = '📍 Current trip';
   else if (isOrigin) status = '🏠 Country of origin';
   else if (isResidence) status = '🏡 Country of residence';
-  else if (isVisited) status = '✓ Visited';
-  else status = 'Click to mark visited';
+  else if (entry && entry.visits.length > 0) {
+    const years = entry.visits.map(v => v.year + (v.layover ? ' (layover)' : '')).join(', ');
+    status = `✓ Visited: ${years}`;
+  }
+  else status = 'Click to add visit';
   tooltip.querySelector('.tooltip-status').textContent = status;
   tooltip.classList.add('show');
   moveTooltip(e);
@@ -1366,12 +1486,68 @@ function hideTooltip() {
   tooltip.classList.remove('show');
 }
 
-// ===== TOGGLE COUNTRY =====
-function toggleCountry(code) {
-  if (visitedCountries[code]) {
+// ===== ADD / REMOVE VISITS =====
+let pendingVisitCode = null;
+
+function openVisitModal(code) {
+  pendingVisitCode = code;
+  const name = COUNTRIES[code] || code.toUpperCase();
+  const existing = visitedCountries[code];
+  document.getElementById('visitModalTitle').textContent = existing ? `Add another visit to ${name}` : `Add visit to ${name}`;
+  const visits = existing ? existing.visits : [];
+  document.getElementById('visitModalSub').textContent = visits.length > 0
+    ? `Previous visits: ${visits.map(v => v.year).sort().join(', ')}`
+    : `${getFlag(code)} ${name}`;
+  document.getElementById('visitYearInput').value = new Date().getFullYear();
+  document.getElementById('visitLayoverCheck').checked = false;
+  document.getElementById('visitModal').classList.add('show');
+  document.getElementById('visitYearInput').focus();
+}
+
+document.getElementById('visitModalSave').addEventListener('click', () => {
+  if (!pendingVisitCode) return;
+  const year = parseInt(document.getElementById('visitYearInput').value);
+  if (!year || year < 1950 || year > 2099) return;
+  const layover = document.getElementById('visitLayoverCheck').checked;
+  addVisit(pendingVisitCode, year, layover);
+  document.getElementById('visitModal').classList.remove('show');
+  pendingVisitCode = null;
+});
+
+document.getElementById('visitModalCancel').addEventListener('click', () => {
+  document.getElementById('visitModal').classList.remove('show');
+  pendingVisitCode = null;
+});
+
+document.getElementById('visitYearInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('visitModalSave').click();
+  if (e.key === 'Escape') document.getElementById('visitModalCancel').click();
+});
+
+document.getElementById('visitModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('visitModal')) {
+    document.getElementById('visitModalCancel').click();
+  }
+});
+
+function addVisit(code, year, layover = false) {
+  if (!visitedCountries[code]) {
+    visitedCountries[code] = { visits: [] };
+  }
+  const visit = { year };
+  if (layover) visit.layover = true;
+  visitedCountries[code].visits.push(visit);
+  visitedCountries[code].visits.sort((a, b) => a.year - b.year);
+  saveState();
+  applyMapStates();
+  updateUI();
+}
+
+function removeVisit(code, index) {
+  if (!visitedCountries[code]) return;
+  visitedCountries[code].visits.splice(index, 1);
+  if (visitedCountries[code].visits.length === 0) {
     delete visitedCountries[code];
-  } else {
-    visitedCountries[code] = { addedAt: new Date().toISOString() };
   }
   saveState();
   applyMapStates();
@@ -1383,6 +1559,16 @@ function removeCountry(code) {
   saveState();
   applyMapStates();
   updateUI();
+}
+
+// Called from map click
+function toggleCountry(code) {
+  if (visitedCountries[code]) {
+    // Already visited — open modal to add another visit
+    openVisitModal(code);
+  } else {
+    openVisitModal(code);
+  }
 }
 
 // ===== UPDATE UI =====
@@ -1416,17 +1602,25 @@ function updateUI() {
 
     listEl.innerHTML = sorted.map((code, i) => {
       const name = COUNTRIES[code];
-      const date = visitedCountries[code].addedAt ? new Date(visitedCountries[code].addedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+      const entry = visitedCountries[code];
+      const visits = entry.visits || [];
       const isOrigin = originCountry === code;
       const isResidence = residenceCountry === code;
       let tag = '';
       if (isOrigin) tag = '<span class="country-tag origin-tag">origin</span>';
       else if (isResidence) tag = '<span class="country-tag residence-tag">residence</span>';
-      return `<div class="country-item" style="animation-delay:${i * 30}ms">
+
+      const visitChips = visits.map((v, vi) =>
+        `<span class="visit-chip ${v.layover ? 'layover-chip' : ''}">${v.year}${v.layover ? ' layover' : ''}<button class="visit-remove" onclick="event.stopPropagation(); removeVisit('${code}', ${vi})">&#10005;</button></span>`
+      ).join('');
+
+      return `<div class="country-item" style="animation-delay:${i * 30}ms" onclick="openVisitModal('${code}')">
         <span class="flag">${getFlag(code)}</span>
-        <span class="name">${name}${tag}</span>
-        <span class="date-added">${date}</span>
-        <button class="remove-btn" onclick="removeCountry('${code}')" title="Remove">&#10005;</button>
+        <div class="country-info">
+          <span class="name">${name}${tag}</span>
+          <div class="visit-chips">${visitChips}</div>
+        </div>
+        <button class="remove-btn" onclick="event.stopPropagation(); removeCountry('${code}')" title="Remove all">&#10005;</button>
       </div>`;
     }).join('');
   }
@@ -1505,7 +1699,7 @@ function setCurrentLocation(code) {
 
   // Also mark as visited
   if (!visitedCountries[code]) {
-    visitedCountries[code] = { addedAt: new Date().toISOString() };
+    visitedCountries[code] = { visits: [{ year: new Date().getFullYear() }] };
   }
 
   saveState();
@@ -1584,10 +1778,12 @@ searchInput.addEventListener('input', () => {
     searchResults.innerHTML = '<div style="padding:12px 16px;color:var(--text-muted);font-size:0.85rem;">No countries found</div>';
   } else {
     searchResults.innerHTML = matches.map(([code, name]) => {
-      const isVisited = visitedCountries[code];
-      return `<div class="search-result-item" onclick="toggleCountry('${code}'); searchInput.value=''; searchResults.classList.remove('show');">
+      const entry = visitedCountries[code];
+      const visitCount = entry ? entry.visits.length : 0;
+      const badge = visitCount > 0 ? `<span class="visited-badge">${visitCount} visit${visitCount > 1 ? 's' : ''}</span>` : '';
+      return `<div class="search-result-item" onclick="openVisitModal('${code}'); searchInput.value=''; searchResults.classList.remove('show');">
         <span><span class="country-flag">${getFlag(code)}</span>${name}</span>
-        ${isVisited ? '<span class="visited-badge">visited</span>' : ''}
+        ${badge}
       </div>`;
     }).join('');
   }
@@ -1638,12 +1834,12 @@ function setupLocationDropdown(inputId, dropdownId, onSelect) {
 setupLocationDropdown('locationInput', 'locationDropdown', setCurrentLocation);
 setupLocationDropdown('originInput', 'originDropdown', (code) => {
   originCountry = code;
-  if (!visitedCountries[code]) visitedCountries[code] = { addedAt: new Date().toISOString() };
+  if (!visitedCountries[code]) visitedCountries[code] = { visits: [] };
   saveState(); applyMapStates(); updateUI();
 });
 setupLocationDropdown('residenceInput', 'residenceDropdown', (code) => {
   residenceCountry = code;
-  if (!visitedCountries[code]) visitedCountries[code] = { addedAt: new Date().toISOString() };
+  if (!visitedCountries[code]) visitedCountries[code] = { visits: [] };
   saveState(); applyMapStates(); updateUI();
 });
 
