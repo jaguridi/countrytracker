@@ -743,9 +743,42 @@ body::before {
   z-index: 1;
 }
 
-.trip-entry:first-child .trip-dot {
+.trip-dot.current {
   background: var(--current-location);
   box-shadow: 0 0 8px rgba(232, 93, 74, 0.5);
+}
+
+.trip-dot.layover {
+  background: #5a5040;
+}
+
+.trip-year-header {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  padding: 8px 0 4px 32px;
+  letter-spacing: 0.02em;
+}
+
+.trip-layover-tag, .trip-current-tag {
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+.trip-layover-tag {
+  background: rgba(90, 80, 64, 0.3);
+  color: var(--text-muted);
+}
+
+.trip-current-tag {
+  background: rgba(232, 93, 74, 0.2);
+  color: var(--current-location);
 }
 
 .trip-line {
@@ -1725,54 +1758,75 @@ function setCurrentLocation(code) {
   document.getElementById('locationDropdown').classList.remove('show');
 }
 
-// ===== TRIP LOG =====
+// ===== TRIP LOG (built from all visited countries) =====
 function updateTripLog() {
   const logEl = document.getElementById('tripLog');
 
-  if (tripLog.length === 0 && !currentLocation) {
+  // Build flat list of all visits from all countries
+  const allVisits = [];
+  for (const [code, entry] of Object.entries(visitedCountries)) {
+    if (!entry.visits) continue;
+    entry.visits.forEach((v, idx) => {
+      allVisits.push({ code, year: v.year, layover: v.layover || false, idx });
+    });
+  }
+
+  // Add current location as "now" entry
+  if (currentLocation) {
+    allVisits.push({
+      code: currentLocation.code,
+      year: new Date().getFullYear(),
+      current: true,
+      since: currentLocation.since
+    });
+  }
+
+  // Sort by year descending (most recent first)
+  allVisits.sort((a, b) => {
+    if (a.current) return -1;
+    if (b.current) return 1;
+    return b.year - a.year;
+  });
+
+  if (allVisits.length === 0) {
     logEl.innerHTML = `<div class="empty-state">
       <div class="empty-icon">&#128747;</div>
-      <p>No trips logged yet.<br>Set your current location to start your travel timeline.</p>
+      <p>No trips logged yet.<br>Add countries with visit years to build your timeline.</p>
     </div>`;
     return;
   }
 
+  // Group by year
   let html = '';
+  let lastYear = null;
 
-  // Current location entry
-  if (currentLocation) {
-    const since = new Date(currentLocation.since).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    html += `<div class="trip-entry">
-      <div class="trip-timeline"><div class="trip-dot"></div><div class="trip-line"></div></div>
-      <div class="trip-details">
-        <div class="trip-country">${getFlag(currentLocation.code)} ${COUNTRIES[currentLocation.code] || currentLocation.code}</div>
-        <div class="trip-date">${since} — present</div>
-      </div>
-    </div>`;
-  }
+  allVisits.forEach((visit, i) => {
+    const yearLabel = visit.current ? 'Now' : visit.year;
+    const showYearHeader = yearLabel !== lastYear;
+    lastYear = yearLabel;
 
-  // Past trips
-  tripLog.forEach((trip, i) => {
-    const arrived = new Date(trip.arrived).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const departed = new Date(trip.departed).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const isLast = i === tripLog.length - 1 && true;
-    html += `<div class="trip-entry" style="animation-delay:${(i + 1) * 50}ms">
-      <div class="trip-timeline"><div class="trip-dot"></div>${isLast ? '' : '<div class="trip-line"></div>'}</div>
-      <div class="trip-details">
-        <div class="trip-country">${getFlag(trip.code)} ${COUNTRIES[trip.code] || trip.code}</div>
-        <div class="trip-date">${arrived} — ${departed}</div>
+    const name = COUNTRIES[visit.code] || visit.code;
+    const flag = getFlag(visit.code);
+    const isLast = i === allVisits.length - 1;
+    const layoverLabel = visit.layover ? ' <span class="trip-layover-tag">layover</span>' : '';
+    const currentLabel = visit.current ? ' <span class="trip-current-tag">current trip</span>' : '';
+
+    if (showYearHeader) {
+      html += `<div class="trip-year-header">${yearLabel}</div>`;
+    }
+
+    html += `<div class="trip-entry" style="animation-delay:${i * 40}ms">
+      <div class="trip-timeline">
+        <div class="trip-dot${visit.current ? ' current' : ''}${visit.layover ? ' layover' : ''}"></div>
+        ${isLast ? '' : '<div class="trip-line"></div>'}
       </div>
-      <button class="trip-remove" onclick="removeTripEntry(${i})" title="Remove">&#10005;</button>
+      <div class="trip-details">
+        <div class="trip-country">${flag} ${name}${layoverLabel}${currentLabel}</div>
+      </div>
     </div>`;
   });
 
   logEl.innerHTML = html;
-}
-
-function removeTripEntry(index) {
-  tripLog.splice(index, 1);
-  saveState();
-  updateUI();
 }
 
 // ===== SEARCH =====
