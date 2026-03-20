@@ -218,29 +218,10 @@ body::before {
   filter: brightness(1.2);
 }
 
-.map-container svg path.origin,
-.map-container svg g path.origin {
-  fill: #4a90d9 !important;
-  filter: drop-shadow(0 0 8px rgba(74, 144, 217, 0.5)) !important;
-}
-
-.map-container svg path.origin:hover,
-.map-container svg g path.origin:hover {
-  fill: #5da0e8 !important;
-  filter: drop-shadow(0 0 12px rgba(74, 144, 217, 0.7)) brightness(1.2) !important;
-}
-
-.map-container svg path.residence,
-.map-container svg g path.residence {
-  fill: #45b764 !important;
-  filter: drop-shadow(0 0 8px rgba(69, 183, 100, 0.5)) !important;
-}
-
-.map-container svg path.residence:hover,
-.map-container svg g path.residence:hover {
-  fill: #55c774 !important;
-  filter: drop-shadow(0 0 12px rgba(69, 183, 100, 0.7)) brightness(1.2) !important;
-}
+path.origin { fill: #4a90d9 !important; filter: drop-shadow(0 0 8px rgba(74, 144, 217, 0.5)) !important; }
+path.origin:hover { fill: #5da0e8 !important; filter: drop-shadow(0 0 12px rgba(74, 144, 217, 0.7)) brightness(1.2) !important; }
+path.residence { fill: #45b764 !important; filter: drop-shadow(0 0 8px rgba(69, 183, 100, 0.5)) !important; }
+path.residence:hover { fill: #55c774 !important; filter: drop-shadow(0 0 12px rgba(69, 183, 100, 0.7)) brightness(1.2) !important; }
 
 .map-container svg path.current-location {
   fill: var(--current-location) !important;
@@ -1418,7 +1399,7 @@ let residenceCountry = localStorage.getItem('wanderlust_residence') || null;
 })();
 
 // Seed defaults on first load
-if (!localStorage.getItem('wanderlust_seeded_v2')) {
+if (!localStorage.getItem('wanderlust_seeded_v3')) {
   originCountry = 'cl';
   residenceCountry = 'us';
   currentLocation = { code: 'py', since: new Date().toISOString() };
@@ -1428,7 +1409,7 @@ if (!localStorage.getItem('wanderlust_seeded_v2')) {
   visitedCountries['th'] = { visits: [{ year: 2025 }] };
   visitedCountries['co'] = { visits: [{ year: 2022 }, { year: 2024 }, { year: 2025 }, { year: 2025 }] };
   visitedCountries['kr'] = { visits: [{ year: 2024, layover: true }] };
-  localStorage.setItem('wanderlust_seeded_v2', '1');
+  localStorage.setItem('wanderlust_seeded_v3', '1');
   saveState();
 }
 
@@ -1504,14 +1485,16 @@ function applyMapStates() {
 
   // Origin (overrides visited color)
   if (originCountry) {
-    const paths = svg.querySelectorAll(`path[id="${originCountry}"]`);
-    paths.forEach(p => p.classList.add('origin'));
+    const paths = svg.querySelectorAll(`[id="${originCountry}"]`);
+    console.log('Origin:', originCountry, 'paths found:', paths.length);
+    paths.forEach(p => { p.classList.add('origin'); p.setAttribute('style', 'fill: #4a90d9 !important'); });
   }
 
   // Residence (overrides visited color)
   if (residenceCountry) {
-    const paths = svg.querySelectorAll(`path[id="${residenceCountry}"]`);
-    paths.forEach(p => p.classList.add('residence'));
+    const paths = svg.querySelectorAll(`[id="${residenceCountry}"]`);
+    console.log('Residence:', residenceCountry, 'paths found:', paths.length);
+    paths.forEach(p => { p.classList.add('residence'); p.setAttribute('style', 'fill: #45b764 !important'); });
   }
 
   // Current trip location (highest priority)
