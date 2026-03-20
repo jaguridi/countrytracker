@@ -1028,52 +1028,39 @@ body::before {
 
 .home-select { flex: 1; }
 
-/* Map legend - collapsed by default */
-.map-legend {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  z-index: 10;
+/* Legend tab */
+.legend-tab-content {
+  padding: 20px 16px;
 }
 
-.legend-toggle {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  cursor: pointer;
+.legend-tab-content h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.legend-grid {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.legend-toggle:hover { background: var(--bg-card-hover); }
-
-.legend-panel {
-  display: none;
   flex-direction: column;
-  gap: 5px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  font-size: 0.68rem;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  white-space: nowrap;
+  gap: 14px;
 }
 
-.map-legend.open .legend-panel { display: flex; }
-.map-legend.open .legend-toggle { background: var(--bg-card-hover); }
-
-.legend-item {
+.legend-row {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.legend-row strong {
+  font-size: 0.85rem;
+  display: block;
+}
+
+.legend-row p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1px;
 }
 
 .legend-dot {
@@ -1202,17 +1189,6 @@ body::before {
   <!-- Map -->
   <section class="map-section">
     <div class="map-container" id="mapContainer">
-      <div class="map-legend" id="mapLegend">
-        <div class="legend-panel">
-          <div class="legend-item"><span class="legend-dot origin"></span> Origin</div>
-          <div class="legend-item"><span class="legend-dot residence"></span> Residence</div>
-          <div class="legend-item"><span class="legend-dot current"></span> Current trip</div>
-          <div class="legend-item"><span class="legend-dot multi"></span> Multiple visits</div>
-          <div class="legend-item"><span class="legend-dot visited"></span> Visited once</div>
-          <div class="legend-item"><span class="legend-dot layover"></span> Layover only</div>
-        </div>
-        <button class="legend-toggle" onclick="document.getElementById('mapLegend').classList.toggle('open')" title="Legend">&#9432;</button>
-      </div>
     </div>
   </section>
 
@@ -1221,6 +1197,7 @@ body::before {
     <div class="sidebar-tabs">
       <button class="sidebar-tab active" data-tab="countries">Countries</button>
       <button class="sidebar-tab" data-tab="location">Location & Trips</button>
+      <button class="sidebar-tab" data-tab="legend">Legend</button>
     </div>
 
     <div class="sidebar-content">
@@ -1312,6 +1289,20 @@ body::before {
                 <p>No trips logged yet.<br>Set your current location to start your travel timeline.</p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+      <!-- Legend Tab -->
+      <div class="tab-panel" id="tab-legend">
+        <div class="legend-tab-content">
+          <h3>Map Colors</h3>
+          <div class="legend-grid">
+            <div class="legend-row"><span class="legend-dot origin"></span><div><strong>Origin</strong><p>Your country of origin</p></div></div>
+            <div class="legend-row"><span class="legend-dot residence"></span><div><strong>Residence</strong><p>Where you currently live</p></div></div>
+            <div class="legend-row"><span class="legend-dot current"></span><div><strong>Current trip</strong><p>Where you are right now</p></div></div>
+            <div class="legend-row"><span class="legend-dot multi"></span><div><strong>Multiple visits</strong><p>Visited more than once</p></div></div>
+            <div class="legend-row"><span class="legend-dot visited"></span><div><strong>Visited once</strong><p>Single visit</p></div></div>
+            <div class="legend-row"><span class="legend-dot layover"></span><div><strong>Layover only</strong><p>Stopover / transit</p></div></div>
           </div>
         </div>
       </div>
