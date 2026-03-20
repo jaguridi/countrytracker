@@ -28,6 +28,8 @@
   --country-visited: #8b6914;
   --country-stroke: #1a1714;
   --current-location: #e85d4a;
+  --country-origin: #5b8fb9;
+  --country-residence: #6bab7b;
   --danger: #c0453a;
   --success: #5a9e6f;
   --font-display: 'Playfair Display', Georgia, serif;
@@ -194,6 +196,24 @@ body::before {
 .map-container svg path.visited:hover {
   fill: var(--accent-gold-dim);
   filter: drop-shadow(0 0 8px rgba(212, 168, 83, 0.4));
+}
+
+.map-container svg path.origin {
+  fill: var(--country-origin) !important;
+  filter: drop-shadow(0 0 5px rgba(91, 143, 185, 0.4));
+}
+
+.map-container svg path.origin:hover {
+  filter: drop-shadow(0 0 10px rgba(91, 143, 185, 0.6)) brightness(1.2);
+}
+
+.map-container svg path.residence {
+  fill: var(--country-residence) !important;
+  filter: drop-shadow(0 0 5px rgba(107, 171, 123, 0.4));
+}
+
+.map-container svg path.residence:hover {
+  filter: drop-shadow(0 0 10px rgba(107, 171, 123, 0.6)) brightness(1.2);
 }
 
 .map-container svg path.current-location {
@@ -425,6 +445,26 @@ body::before {
   font-size: 0.72rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
+}
+
+.country-tag {
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+.origin-tag {
+  background: rgba(91, 143, 185, 0.2);
+  color: var(--country-origin);
+}
+
+.residence-tag {
+  background: rgba(107, 171, 123, 0.2);
+  color: var(--country-residence);
 }
 
 .country-item .remove-btn {
@@ -829,6 +869,84 @@ body::before {
   .logo h1 { font-size: 1.3rem; }
 }
 
+/* ===== HOME BADGES ===== */
+.home-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.home-badge {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+}
+
+.origin-badge { border-left: 3px solid var(--country-origin); }
+.residence-badge { border-left: 3px solid var(--country-residence); }
+
+.home-badge-icon { font-size: 1.3rem; }
+
+.home-badge-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.home-badge-country {
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: block;
+}
+
+.home-edit-row {
+  display: flex;
+  gap: 8px;
+}
+
+.home-select { flex: 1; }
+
+/* Map legend dots */
+.map-legend {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  z-index: 10;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-dot.origin { background: var(--country-origin); }
+.legend-dot.residence { background: var(--country-residence); }
+.legend-dot.visited { background: var(--country-visited); }
+.legend-dot.current { background: var(--current-location); }
+
 /* ===== CONTINENT STATS ===== */
 .continent-stats {
   padding: 12px 16px;
@@ -940,7 +1058,14 @@ body::before {
 <main class="main">
   <!-- Map -->
   <section class="map-section">
-    <div class="map-container" id="mapContainer"></div>
+    <div class="map-container" id="mapContainer">
+      <div class="map-legend">
+        <div class="legend-item"><span class="legend-dot origin"></span> Origin</div>
+        <div class="legend-item"><span class="legend-dot residence"></span> Residence</div>
+        <div class="legend-item"><span class="legend-dot visited"></span> Visited</div>
+        <div class="legend-item"><span class="legend-dot current"></span> Current trip</div>
+      </div>
+    </div>
   </section>
 
   <!-- Sidebar -->
@@ -984,8 +1109,40 @@ body::before {
       <!-- Location & Trips Tab -->
       <div class="tab-panel" id="tab-location">
         <div class="location-section">
+          <!-- Origin & Residence -->
           <div class="current-loc-card">
-            <h4>Currently In</h4>
+            <h4>Home Base</h4>
+            <div class="home-row">
+              <div class="home-badge origin-badge">
+                <span class="home-badge-icon" id="originFlag">🏴</span>
+                <div class="home-badge-info">
+                  <span class="home-badge-label">Origin</span>
+                  <span class="home-badge-country" id="originCountry">Not set</span>
+                </div>
+              </div>
+              <div class="home-badge residence-badge">
+                <span class="home-badge-icon" id="residenceFlag">🏴</span>
+                <div class="home-badge-info">
+                  <span class="home-badge-label">Residence</span>
+                  <span class="home-badge-country" id="residenceCountry">Not set</span>
+                </div>
+              </div>
+            </div>
+            <div class="home-edit-row">
+              <div class="location-select-wrapper home-select">
+                <input type="text" class="location-select-input" id="originInput" placeholder="Set origin..." autocomplete="off">
+                <div class="location-dropdown" id="originDropdown"></div>
+              </div>
+              <div class="location-select-wrapper home-select">
+                <input type="text" class="location-select-input" id="residenceInput" placeholder="Set residence..." autocomplete="off">
+                <div class="location-dropdown" id="residenceDropdown"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Trip -->
+          <div class="current-loc-card">
+            <h4>Current Trip</h4>
             <div class="current-loc-display">
               <div class="location-avatar" id="locationAvatar">&#127757;</div>
               <div class="location-info">
@@ -1093,11 +1250,27 @@ function getFlag(code) {
 let visitedCountries = JSON.parse(localStorage.getItem('wanderlust_visited') || '{}');
 let currentLocation = JSON.parse(localStorage.getItem('wanderlust_location') || 'null');
 let tripLog = JSON.parse(localStorage.getItem('wanderlust_trips') || '[]');
+let originCountry = localStorage.getItem('wanderlust_origin') || null;
+let residenceCountry = localStorage.getItem('wanderlust_residence') || null;
+
+// Seed defaults on first load
+if (!localStorage.getItem('wanderlust_seeded')) {
+  originCountry = 'cl';
+  residenceCountry = 'us';
+  currentLocation = { code: 'py', since: new Date().toISOString() };
+  visitedCountries['cl'] = { addedAt: new Date().toISOString() };
+  visitedCountries['us'] = { addedAt: new Date().toISOString() };
+  visitedCountries['py'] = { addedAt: new Date().toISOString() };
+  localStorage.setItem('wanderlust_seeded', '1');
+  saveState();
+}
 
 function saveState() {
   localStorage.setItem('wanderlust_visited', JSON.stringify(visitedCountries));
   localStorage.setItem('wanderlust_location', JSON.stringify(currentLocation));
   localStorage.setItem('wanderlust_trips', JSON.stringify(tripLog));
+  localStorage.setItem('wanderlust_origin', originCountry || '');
+  localStorage.setItem('wanderlust_residence', residenceCountry || '');
 }
 
 // ===== LOAD MAP =====
@@ -1135,7 +1308,7 @@ function applyMapStates() {
   if (!svg) return;
 
   svg.querySelectorAll('path[id]').forEach(path => {
-    path.classList.remove('visited', 'current-location');
+    path.classList.remove('visited', 'current-location', 'origin', 'residence');
   });
 
   Object.keys(visitedCountries).forEach(code => {
@@ -1143,6 +1316,19 @@ function applyMapStates() {
     paths.forEach(p => p.classList.add('visited'));
   });
 
+  // Origin (overrides visited color)
+  if (originCountry) {
+    const paths = svg.querySelectorAll(`path[id="${originCountry}"]`);
+    paths.forEach(p => p.classList.add('origin'));
+  }
+
+  // Residence (overrides visited color)
+  if (residenceCountry) {
+    const paths = svg.querySelectorAll(`path[id="${residenceCountry}"]`);
+    paths.forEach(p => p.classList.add('residence'));
+  }
+
+  // Current trip location (highest priority)
   if (currentLocation) {
     const paths = svg.querySelectorAll(`path[id="${currentLocation.code}"]`);
     paths.forEach(p => p.classList.add('current-location'));
@@ -1157,8 +1343,12 @@ function showTooltip(e, code) {
   const isVisited = visitedCountries[code];
   const isCurrent = currentLocation && currentLocation.code === code;
   tooltip.querySelector('.tooltip-name').textContent = `${getFlag(code)} ${name}`;
+  const isOrigin = originCountry === code;
+  const isResidence = residenceCountry === code;
   let status = '';
-  if (isCurrent) status = '📍 Currently here';
+  if (isCurrent) status = '📍 Current trip';
+  else if (isOrigin) status = '🏠 Country of origin';
+  else if (isResidence) status = '🏡 Country of residence';
   else if (isVisited) status = '✓ Visited';
   else status = 'Click to mark visited';
   tooltip.querySelector('.tooltip-status').textContent = status;
@@ -1226,9 +1416,14 @@ function updateUI() {
     listEl.innerHTML = sorted.map((code, i) => {
       const name = COUNTRIES[code];
       const date = visitedCountries[code].addedAt ? new Date(visitedCountries[code].addedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+      const isOrigin = originCountry === code;
+      const isResidence = residenceCountry === code;
+      let tag = '';
+      if (isOrigin) tag = '<span class="country-tag origin-tag">origin</span>';
+      else if (isResidence) tag = '<span class="country-tag residence-tag">residence</span>';
       return `<div class="country-item" style="animation-delay:${i * 30}ms">
         <span class="flag">${getFlag(code)}</span>
-        <span class="name">${name}</span>
+        <span class="name">${name}${tag}</span>
         <span class="date-added">${date}</span>
         <button class="remove-btn" onclick="removeCountry('${code}')" title="Remove">&#10005;</button>
       </div>`;
@@ -1269,6 +1464,13 @@ function updateContinentStats() {
 
 // ===== LOCATION =====
 function updateLocationDisplay() {
+  // Origin & Residence badges
+  document.getElementById('originFlag').textContent = originCountry ? getFlag(originCountry) : '🏴';
+  document.getElementById('originCountry').textContent = originCountry ? COUNTRIES[originCountry] : 'Not set';
+  document.getElementById('residenceFlag').textContent = residenceCountry ? getFlag(residenceCountry) : '🏴';
+  document.getElementById('residenceCountry').textContent = residenceCountry ? COUNTRIES[residenceCountry] : 'Not set';
+
+  // Current trip
   const avatar = document.getElementById('locationAvatar');
   const countryEl = document.getElementById('locCountry');
   const sinceEl = document.getElementById('locSince');
@@ -1397,32 +1599,51 @@ searchInput.addEventListener('focus', () => {
 
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-wrapper')) searchResults.classList.remove('show');
-  if (!e.target.closest('.location-select-wrapper')) document.getElementById('locationDropdown').classList.remove('show');
+  if (!e.target.closest('.location-select-wrapper')) {
+    document.getElementById('locationDropdown').classList.remove('show');
+    document.getElementById('originDropdown').classList.remove('show');
+    document.getElementById('residenceDropdown').classList.remove('show');
+  }
 });
 
 // ===== LOCATION SEARCH =====
-const locationInput = document.getElementById('locationInput');
-const locationDropdown = document.getElementById('locationDropdown');
+function setupLocationDropdown(inputId, dropdownId, onSelect) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (q.length < 1) { dropdown.classList.remove('show'); return; }
+    const matches = Object.entries(COUNTRIES)
+      .filter(([code, name]) => !code.startsWith('_') && (name.toLowerCase().includes(q) || code.includes(q)))
+      .slice(0, 8);
+    if (matches.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px 14px;color:var(--text-muted);font-size:0.82rem;">No countries found</div>';
+    } else {
+      dropdown.innerHTML = matches.map(([code, name]) =>
+        `<div class="location-dropdown-item" data-code="${code}">${getFlag(code)} ${name}</div>`
+      ).join('');
+      dropdown.querySelectorAll('.location-dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          onSelect(item.dataset.code);
+          input.value = '';
+          dropdown.classList.remove('show');
+        });
+      });
+    }
+    dropdown.classList.add('show');
+  });
+}
 
-locationInput.addEventListener('input', () => {
-  const q = locationInput.value.trim().toLowerCase();
-  if (q.length < 1) {
-    locationDropdown.classList.remove('show');
-    return;
-  }
-
-  const matches = Object.entries(COUNTRIES)
-    .filter(([code, name]) => !code.startsWith('_') && (name.toLowerCase().includes(q) || code.includes(q)))
-    .slice(0, 8);
-
-  if (matches.length === 0) {
-    locationDropdown.innerHTML = '<div style="padding:10px 14px;color:var(--text-muted);font-size:0.82rem;">No countries found</div>';
-  } else {
-    locationDropdown.innerHTML = matches.map(([code, name]) =>
-      `<div class="location-dropdown-item" onclick="setCurrentLocation('${code}')">${getFlag(code)} ${name}</div>`
-    ).join('');
-  }
-  locationDropdown.classList.add('show');
+setupLocationDropdown('locationInput', 'locationDropdown', setCurrentLocation);
+setupLocationDropdown('originInput', 'originDropdown', (code) => {
+  originCountry = code;
+  if (!visitedCountries[code]) visitedCountries[code] = { addedAt: new Date().toISOString() };
+  saveState(); applyMapStates(); updateUI();
+});
+setupLocationDropdown('residenceInput', 'residenceDropdown', (code) => {
+  residenceCountry = code;
+  if (!visitedCountries[code]) visitedCountries[code] = { addedAt: new Date().toISOString() };
+  saveState(); applyMapStates(); updateUI();
 });
 
 // ===== TABS =====
