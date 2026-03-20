@@ -28,8 +28,8 @@
   --country-visited: #8b6914;
   --country-stroke: #1a1714;
   --current-location: #e85d4a;
-  --country-origin: #5b8fb9;
-  --country-residence: #6bab7b;
+  --country-origin: #4a90d9;
+  --country-residence: #45b764;
   --danger: #c0453a;
   --success: #5a9e6f;
   --font-display: 'Playfair Display', Georgia, serif;
@@ -218,22 +218,28 @@ body::before {
   filter: brightness(1.2);
 }
 
-.map-container svg path.origin {
-  fill: var(--country-origin) !important;
-  filter: drop-shadow(0 0 5px rgba(91, 143, 185, 0.4));
+.map-container svg path.origin,
+.map-container svg g path.origin {
+  fill: #4a90d9 !important;
+  filter: drop-shadow(0 0 8px rgba(74, 144, 217, 0.5)) !important;
 }
 
-.map-container svg path.origin:hover {
-  filter: drop-shadow(0 0 10px rgba(91, 143, 185, 0.6)) brightness(1.2);
+.map-container svg path.origin:hover,
+.map-container svg g path.origin:hover {
+  fill: #5da0e8 !important;
+  filter: drop-shadow(0 0 12px rgba(74, 144, 217, 0.7)) brightness(1.2) !important;
 }
 
-.map-container svg path.residence {
-  fill: var(--country-residence) !important;
-  filter: drop-shadow(0 0 5px rgba(107, 171, 123, 0.4));
+.map-container svg path.residence,
+.map-container svg g path.residence {
+  fill: #45b764 !important;
+  filter: drop-shadow(0 0 8px rgba(69, 183, 100, 0.5)) !important;
 }
 
-.map-container svg path.residence:hover {
-  filter: drop-shadow(0 0 10px rgba(107, 171, 123, 0.6)) brightness(1.2);
+.map-container svg path.residence:hover,
+.map-container svg g path.residence:hover {
+  fill: #55c774 !important;
+  filter: drop-shadow(0 0 12px rgba(69, 183, 100, 0.7)) brightness(1.2) !important;
 }
 
 .map-container svg path.current-location {
@@ -1388,7 +1394,16 @@ async function loadMap() {
   try {
     const resp = await fetch('world-map-source.svg');
     const svgText = await resp.text();
-    container.innerHTML = svgText;
+    // Preserve legend, insert SVG before it
+    const legend = container.querySelector('.map-legend');
+    const temp = document.createElement('div');
+    temp.innerHTML = svgText;
+    const svgEl = temp.querySelector('svg');
+    if (legend) {
+      container.insertBefore(svgEl, legend);
+    } else {
+      container.innerHTML = svgText;
+    }
 
     const svg = container.querySelector('svg');
     svg.removeAttribute('width');
@@ -1590,12 +1605,12 @@ function updateUI() {
 
   // Country list
   const listEl = document.getElementById('countryList');
-  const emptyState = document.getElementById('emptyState');
 
   if (visitedCount === 0) {
-    listEl.innerHTML = '';
-    listEl.appendChild(emptyState);
-    emptyState.style.display = '';
+    listEl.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">&#127758;</div>
+      <p>No countries visited yet.<br>Search above or click on the map to start tracking your adventures.</p>
+    </div>`;
   } else {
     const sorted = visited
       .filter(code => COUNTRIES[code])
@@ -1713,12 +1728,12 @@ function setCurrentLocation(code) {
 // ===== TRIP LOG =====
 function updateTripLog() {
   const logEl = document.getElementById('tripLog');
-  const emptyEl = document.getElementById('tripEmptyState');
 
   if (tripLog.length === 0 && !currentLocation) {
-    logEl.innerHTML = '';
-    logEl.appendChild(emptyEl);
-    emptyEl.style.display = '';
+    logEl.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">&#128747;</div>
+      <p>No trips logged yet.<br>Set your current location to start your travel timeline.</p>
+    </div>`;
     return;
   }
 
