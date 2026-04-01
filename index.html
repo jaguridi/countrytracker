@@ -943,6 +943,176 @@ path.residence:hover { fill: #55c774 !important; filter: drop-shadow(0 0 12px rg
 
 .btn-ghost:hover { background: var(--bg-card-hover); }
 
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+}
+
+/* ===== IMPORT MODAL ===== */
+.import-modal {
+  width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.import-modal .modal-body {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.import-dropzone {
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 16px;
+}
+
+.import-dropzone:hover, .import-dropzone.dragover {
+  border-color: var(--accent-gold);
+  background: rgba(212, 168, 83, 0.05);
+}
+
+.import-dropzone-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.import-dropzone-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.import-dropzone-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.import-help {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.import-help strong {
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.import-help ol {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.import-preview {
+  margin-top: 12px;
+}
+
+.import-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.import-preview-header h4 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.import-preview-count {
+  font-size: 0.78rem;
+  color: var(--accent-gold);
+  font-weight: 500;
+}
+
+.import-preview-list {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.import-preview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+
+.import-preview-item:last-child { border-bottom: none; }
+
+.import-preview-item .flag { margin-right: 8px; }
+
+.import-preview-item.existing {
+  opacity: 0.5;
+}
+
+.import-preview-years {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.import-status {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  display: none;
+}
+
+.import-status.success {
+  display: block;
+  background: rgba(90, 158, 111, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(90, 158, 111, 0.3);
+}
+
+.import-status.error {
+  display: block;
+  background: rgba(192, 69, 58, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(192, 69, 58, 0.3);
+}
+
+.import-btn-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-import {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-import:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-light);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .main {
@@ -1193,7 +1363,13 @@ path.residence:hover { fill: #55c774 !important; filter: drop-shadow(0 0 12px rg
         </div>
         <div class="country-list-header">
           <h3>Visited Countries</h3>
-          <span class="count" id="listCount">0 countries</span>
+          <div class="import-btn-row">
+            <button class="btn-import" onclick="openImportModal()" title="Import from Google Maps">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Import
+            </button>
+            <span class="count" id="listCount">0 countries</span>
+          </div>
         </div>
         <div class="country-list" id="countryList">
           <div class="empty-state" id="emptyState">
@@ -1315,6 +1491,46 @@ path.residence:hover { fill: #55c774 !important; filter: drop-shadow(0 0 12px rg
     <div class="modal-actions">
       <button class="btn btn-ghost" id="visitModalCancel">Cancel</button>
       <button class="btn btn-primary" id="visitModalSave">Add Visit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal import-modal">
+    <h3>Import from Google Maps</h3>
+    <div class="modal-body">
+      <div id="importUploadStep">
+        <div class="import-help">
+          <strong>How to export your Google Maps data:</strong>
+          <ol>
+            <li>Go to <em>Google Takeout</em> (takeout.google.com)</li>
+            <li>Select only <em>"Location History"</em> (or "Timeline")</li>
+            <li>Choose JSON format and export</li>
+            <li>Extract the ZIP and upload the JSON file(s) here</li>
+          </ol>
+        </div>
+        <div class="import-dropzone" id="importDropzone">
+          <div class="import-dropzone-icon">&#128506;</div>
+          <div class="import-dropzone-text">Drop JSON files here or click to browse</div>
+          <div class="import-dropzone-hint">Supports: Semantic Location History, Records.json, Location History.json, Settings.json, Timeline Edits</div>
+        </div>
+        <input type="file" id="importFileInput" multiple accept=".json" style="display:none">
+      </div>
+      <div id="importPreviewStep" style="display:none">
+        <div class="import-preview">
+          <div class="import-preview-header">
+            <h4>Countries found</h4>
+            <span class="import-preview-count" id="importPreviewCount"></span>
+          </div>
+          <div class="import-preview-list" id="importPreviewList"></div>
+        </div>
+      </div>
+      <div class="import-status" id="importStatus"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="importModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="importModalConfirm" style="display:none">Import Countries</button>
     </div>
   </div>
 </div>
@@ -1923,6 +2139,347 @@ document.querySelectorAll('.sidebar-tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
   });
+});
+
+// ===== GOOGLE MAPS IMPORT =====
+const GOOGLE_COUNTRY_TO_CODE = {};
+// Build reverse map: country name -> ISO code
+Object.entries(COUNTRIES).forEach(([code, name]) => {
+  GOOGLE_COUNTRY_TO_CODE[name.toLowerCase()] = code;
+});
+// Add common Google Maps variants
+const COUNTRY_ALIASES = {
+  'united states of america': 'us', 'usa': 'us', 'u.s.a.': 'us', 'u.s.': 'us',
+  'uk': 'gb', 'england': 'gb', 'scotland': 'gb', 'wales': 'gb', 'northern ireland': 'gb',
+  'republic of korea': 'kr', 'korea, republic of': 'kr', 'korea': 'kr',
+  "korea, democratic people's republic of": 'kp',
+  'russian federation': 'ru', 'türkiye': 'tr', 'turkiye': 'tr',
+  'czech republic': 'cz', 'czechia': 'cz',
+  'ivory coast': 'ci', "cote d'ivoire": 'ci', "côte d'ivoire": 'ci',
+  'democratic republic of the congo': 'cd', 'congo, democratic republic': 'cd',
+  'republic of the congo': 'cg', 'congo': 'cg',
+  'united arab emirates': 'ae', 'uae': 'ae',
+  'the netherlands': 'nl', 'holland': 'nl',
+  'people\'s republic of china': 'cn', 'p.r.c.': 'cn', 'prc': 'cn',
+  'republic of china': 'tw', 'chinese taipei': 'tw',
+  'myanmar (burma)': 'mm', 'burma': 'mm',
+  'swaziland': 'sz', 'eswatini': 'sz',
+  'north macedonia': 'mk', 'macedonia': 'mk',
+  'bosnia & herzegovina': 'ba',
+  'trinidad & tobago': 'tt',
+  'antigua & barbuda': 'ag',
+  'st. lucia': 'lc', 'st. kitts and nevis': 'kn', 'st. vincent': 'vc',
+  'saint kitts & nevis': 'kn', 'saint vincent & the grenadines': 'vc',
+  'east timor': 'tl',
+  'vatican': 'va', 'holy see': 'va',
+  'são tomé and príncipe': 'st', 'sao tome & principe': 'st',
+  'cape verde': 'cv', 'cabo verde': 'cv',
+  'the bahamas': 'bs', 'the gambia': 'gm',
+  'palestine, state of': 'ps', 'state of palestine': 'ps', 'palestinian territories': 'ps',
+  'brunei darussalam': 'bn',
+  'lao people\'s democratic republic': 'la', 'lao pdr': 'la',
+  'viet nam': 'vn',
+  'ir iran': 'ir', 'iran, islamic republic of': 'ir',
+  'syria, arab republic': 'sy', 'syrian arab republic': 'sy',
+  'micronesia, federated states of': 'fm',
+  'timor leste': 'tl',
+  'dr congo': 'cd',
+  'south sudan': 'ss',
+  'puerto rico': 'pr',
+};
+Object.entries(COUNTRY_ALIASES).forEach(([alias, code]) => {
+  GOOGLE_COUNTRY_TO_CODE[alias] = code;
+});
+
+function resolveCountryCode(text) {
+  if (!text) return null;
+  const lower = text.trim().toLowerCase();
+  // Direct match
+  if (GOOGLE_COUNTRY_TO_CODE[lower]) return GOOGLE_COUNTRY_TO_CODE[lower];
+  // Try removing leading "the "
+  if (lower.startsWith('the ')) {
+    const without = lower.substring(4);
+    if (GOOGLE_COUNTRY_TO_CODE[without]) return GOOGLE_COUNTRY_TO_CODE[without];
+  }
+  // ISO alpha-2 code (2 chars)
+  if (lower.length === 2 && COUNTRIES[lower]) return lower;
+  return null;
+}
+
+function extractCountryFromAddress(address) {
+  if (!address) return null;
+  // Google Maps addresses typically end with the country name
+  const parts = address.split(',').map(p => p.trim());
+  // Try from last part backwards
+  for (let i = parts.length - 1; i >= Math.max(0, parts.length - 3); i--) {
+    const code = resolveCountryCode(parts[i]);
+    if (code) return code;
+  }
+  return null;
+}
+
+function parseGoogleTakeoutData(jsonData) {
+  const countriesFound = {}; // code -> Set of years
+
+  function addCountry(code, year) {
+    if (!code || !COUNTRIES[code]) return;
+    if (!countriesFound[code]) countriesFound[code] = new Set();
+    if (year) countriesFound[code].add(year);
+  }
+
+  // Format 1: Semantic Location History (monthly files)
+  // { "timelineObjects": [ { "placeVisit": { ... } } ] }
+  if (jsonData.timelineObjects) {
+    jsonData.timelineObjects.forEach(obj => {
+      if (obj.placeVisit) {
+        const pv = obj.placeVisit;
+        const loc = pv.location || {};
+        let code = null;
+
+        // Try country code from location
+        if (loc.address) code = extractCountryFromAddress(loc.address);
+
+        // Try from formatted address
+        if (!code && loc.formattedAddress) code = extractCountryFromAddress(loc.formattedAddress);
+
+        // Determine year from duration
+        let year = null;
+        const duration = pv.duration || {};
+        const startTs = duration.startTimestamp || duration.startTimestampMs;
+        if (startTs) {
+          const d = typeof startTs === 'string' ? new Date(startTs) : new Date(parseInt(startTs));
+          if (!isNaN(d)) year = d.getFullYear();
+        }
+
+        addCountry(code, year);
+      }
+    });
+  }
+
+  // Format 2: Records.json / Location History.json (raw location points)
+  // { "locations": [ { "latitudeE7": ..., "longitudeE7": ..., "timestamp": ... } ] }
+  // These don't have country names directly, but we skip these since reverse geocoding isn't possible client-side
+
+  // Format 3: Semantic Location History (newer format)
+  // Array of objects with "visit" or "activity" keys
+  if (Array.isArray(jsonData)) {
+    jsonData.forEach(item => {
+      // Newer timeline format
+      if (item.visit) {
+        const visit = item.visit;
+        const topCandidate = visit.topCandidate || {};
+        const placeLocation = topCandidate.placeLocation || {};
+
+        // Try semanticType or address
+        if (topCandidate.placeID || placeLocation.latLng) {
+          // We can't resolve placeIDs without API, but try address if available
+        }
+
+        let year = null;
+        if (visit.startTime) {
+          const d = new Date(visit.startTime);
+          if (!isNaN(d)) year = d.getFullYear();
+        }
+
+        // Check if there's address/name info in hierarchyLevel or topCandidate
+        if (topCandidate.semanticType === 'COUNTRY') {
+          const code = resolveCountryCode(topCandidate.name);
+          addCountry(code, year);
+        }
+      }
+
+      // Also handle placeVisit format when array
+      if (item.placeVisit) {
+        const pv = item.placeVisit;
+        const loc = pv.location || {};
+        let code = null;
+        if (loc.address) code = extractCountryFromAddress(loc.address);
+        if (!code && loc.formattedAddress) code = extractCountryFromAddress(loc.formattedAddress);
+
+        let year = null;
+        const duration = pv.duration || {};
+        const startTs = duration.startTimestamp || duration.startTimestampMs;
+        if (startTs) {
+          const d = typeof startTs === 'string' ? new Date(startTs) : new Date(parseInt(startTs));
+          if (!isNaN(d)) year = d.getFullYear();
+        }
+        addCountry(code, year);
+      }
+    });
+  }
+
+  // Format 4: Settings.json from Location History
+  // { "deviceSettings": [...], "hasReportedLocations": true }
+  // Not useful for countries
+
+  // Format 5: Place aggregates / Saved Places
+  if (jsonData.features) {
+    // GeoJSON format (Google Saved Places export)
+    jsonData.features.forEach(f => {
+      if (f.properties && f.properties.location) {
+        const addr = f.properties.location.address || f.properties['Google Maps URL'] || '';
+        const code = extractCountryFromAddress(addr);
+        let year = null;
+        if (f.properties.date) {
+          const d = new Date(f.properties.date);
+          if (!isNaN(d)) year = d.getFullYear();
+        }
+        addCountry(code, year);
+      }
+    });
+  }
+
+  return countriesFound;
+}
+
+let importData = null; // Parsed data ready to import
+
+function openImportModal() {
+  importData = null;
+  document.getElementById('importUploadStep').style.display = '';
+  document.getElementById('importPreviewStep').style.display = 'none';
+  document.getElementById('importModalConfirm').style.display = 'none';
+  document.getElementById('importStatus').className = 'import-status';
+  document.getElementById('importStatus').textContent = '';
+  document.getElementById('importModal').classList.add('show');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('show');
+  importData = null;
+}
+
+document.getElementById('importModalCancel').addEventListener('click', closeImportModal);
+document.getElementById('importModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('importModal')) closeImportModal();
+});
+
+// Dropzone interactions
+const importDropzone = document.getElementById('importDropzone');
+const importFileInput = document.getElementById('importFileInput');
+
+importDropzone.addEventListener('click', () => importFileInput.click());
+importDropzone.addEventListener('dragover', e => { e.preventDefault(); importDropzone.classList.add('dragover'); });
+importDropzone.addEventListener('dragleave', () => importDropzone.classList.remove('dragover'));
+importDropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  importDropzone.classList.remove('dragover');
+  handleImportFiles(e.dataTransfer.files);
+});
+importFileInput.addEventListener('change', () => {
+  handleImportFiles(importFileInput.files);
+  importFileInput.value = '';
+});
+
+async function handleImportFiles(files) {
+  const statusEl = document.getElementById('importStatus');
+  statusEl.className = 'import-status';
+  statusEl.textContent = '';
+
+  const allCountries = {}; // code -> Set of years
+  let filesProcessed = 0;
+  let errors = [];
+
+  for (const file of files) {
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const countries = parseGoogleTakeoutData(json);
+
+      for (const [code, years] of Object.entries(countries)) {
+        if (!allCountries[code]) allCountries[code] = new Set();
+        years.forEach(y => allCountries[code].add(y));
+      }
+      filesProcessed++;
+    } catch (err) {
+      errors.push(`${file.name}: ${err.message}`);
+    }
+  }
+
+  if (errors.length > 0 && filesProcessed === 0) {
+    statusEl.className = 'import-status error';
+    statusEl.textContent = 'Could not parse files. Make sure they are Google Takeout JSON files.';
+    return;
+  }
+
+  const countryCount = Object.keys(allCountries).length;
+  if (countryCount === 0) {
+    statusEl.className = 'import-status error';
+    statusEl.textContent = filesProcessed > 0
+      ? 'No countries could be extracted from the uploaded files. Try uploading Semantic Location History JSON files.'
+      : 'Could not parse the uploaded files.';
+    return;
+  }
+
+  // Show preview
+  importData = allCountries;
+  showImportPreview(allCountries);
+}
+
+function showImportPreview(countriesMap) {
+  document.getElementById('importUploadStep').style.display = 'none';
+  document.getElementById('importPreviewStep').style.display = '';
+  document.getElementById('importModalConfirm').style.display = '';
+
+  const sorted = Object.entries(countriesMap)
+    .map(([code, years]) => ({ code, years: [...years].sort() }))
+    .sort((a, b) => (COUNTRIES[a.code] || '').localeCompare(COUNTRIES[b.code] || ''));
+
+  const newCount = sorted.filter(c => !visitedCountries[c.code]).length;
+  document.getElementById('importPreviewCount').textContent = `${sorted.length} countries (${newCount} new)`;
+
+  const listEl = document.getElementById('importPreviewList');
+  listEl.innerHTML = sorted.map(({ code, years }) => {
+    const isExisting = !!visitedCountries[code];
+    const name = COUNTRIES[code] || code;
+    const yearStr = years.length > 0 ? years.join(', ') : 'no year data';
+    return `<div class="import-preview-item${isExisting ? ' existing' : ''}">
+      <span><span class="flag">${getFlag(code)}</span> ${name}${isExisting ? ' (already tracked)' : ''}</span>
+      <span class="import-preview-years">${yearStr}</span>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('importModalConfirm').addEventListener('click', () => {
+  if (!importData) return;
+
+  let added = 0;
+  let updated = 0;
+
+  for (const [code, years] of Object.entries(importData)) {
+    if (!COUNTRIES[code]) continue;
+
+    if (!visitedCountries[code]) {
+      visitedCountries[code] = { visits: [] };
+      added++;
+    } else {
+      updated++;
+    }
+
+    const existing = visitedCountries[code].visits;
+    const existingKeys = new Set(existing.map(v => `${v.year}`));
+
+    years.forEach(year => {
+      if (year && !existingKeys.has(`${year}`)) {
+        existing.push({ year });
+        existingKeys.add(`${year}`);
+      }
+    });
+
+    // If no years and no existing visits, add entry without visits
+    existing.sort((a, b) => a.year - b.year);
+  }
+
+  saveState();
+  applyMapStates();
+  updateUI();
+
+  const statusEl = document.getElementById('importStatus');
+  statusEl.className = 'import-status success';
+  statusEl.textContent = `Imported successfully! ${added} new countries added, ${updated} existing countries updated.`;
+
+  document.getElementById('importModalConfirm').style.display = 'none';
+  importData = null;
 });
 
 // ===== INIT =====
